@@ -1,7 +1,10 @@
-import { Fieldset, VStack,Stack, Input,Field,Button,FileUpload} from '@chakra-ui/react'
+import { Fieldset, VStack,Stack, Input,Field,Button,FileUpload,Box} from '@chakra-ui/react'
 import { HiUpload } from "react-icons/hi";
 import React,{useState} from 'react'
 import { PasswordInput } from '../src/components/ui/password-input';
+import { Toaster, toaster } from "../src/components/ui/toaster"
+import axios from 'axios';
+import {useNavigate} from "react-router-dom"
 const Signup = () => {
 
 const [name,setName]= useState();
@@ -9,13 +12,110 @@ const [email,setEmail]= useState();
 const [password,setPassword]= useState();
 const [confirmpassword,setConfirmpassword]= useState();
 const [avatar,setAvatar]= useState();
-
+const [loading,setLoading]=useState(false)
+const navigate = useNavigate();
 const postDetails=(avatar)=>{
+setLoading(true);
+if(avatar==undefined){
+toaster.create({
+  title: "Upload unsuccessful",
+  description: "File couldn't be saved. Something went wrong",
+  duration:5000,
+  closable:true,
+  placement:"top-end",
+  overlap:true,
 
+});
+return;
+}
+
+if(avatar.type==="image/jpeg" || avatar.type === "image/png"){
+  const data = new FormData();
+  data.append("file",avatar);
+  data.append("upload_preset","guff-gaff");
+  data.append("cloud_name","dq4q2iqk1");
+  fetch("https://api.cloudinary.com/v1_1/dq4q2iqk1/image/upload",{
+    method:'post',body:data,
+  })
+  .then((res)=>res.json())
+  .then(data=>{
+    console.log(data)
+    setAvatar(data.url.toString());
+    setLoading(false)
+  })
+  .catch((err)=>{
+    console.log(err);
+    setLoading(false)
+  });
+}else{
+  toaster.create({
+  title: "Upload unsuccessful",
+  description: "File couldn't be saved. Something went wrong",
+  duration:5000,
+  closable:true,
+  placement:"top-end",
+  overlap:true,
+
+});
+setLoading(false);
+return;
+}
 };
 
-const submitHandler=(e)=>{
-
+const submitHandler=async (e)=>{
+setLoading(true);
+if(!name || !email || !password || !confirmpassword){
+  toaster.create(
+    {
+      title:"Please fill all the fields",
+      type:"error",
+      duration:5000,
+      closable:true,
+      placement:"bottom",
+ 
+    }
+  );
+  setLoading(false);
+  return;
+}
+if( password !== confirmpassword){
+  toaster.create({
+    title:"Passwords do not match",
+    type:"error",
+    duration:5000,
+    closable: true,
+    placement:"bottom"
+  });
+  return;
+}
+try {
+  const config ={
+    headers:{
+      "Content-type":"application/json"
+    },
+  };
+  const {data} = await axios.post("/api/user",{name,email,password,avatar},config);
+  toaster.create({
+    title:"Registration Successful",
+    type:"success",
+    duration:5000,
+    closable: true,
+    placement:"bottom"
+  });
+  localStorage.setItem('userInfo',JSON.stringify(data));
+  setLoading(false);
+  navigate("/chats");
+} catch (error) {
+    toaster.create({
+      title:"Error!!!",
+      description: error.response.data.message,
+      type:"error",
+      duration:5000,
+      closable:true,
+      placement:"bottom"
+    });
+    setLoading(false);
+}  
 }
   return (
     <VStack spacing='5px' color="black">
@@ -40,7 +140,7 @@ const submitHandler=(e)=>{
                 />
             </Field.Root>
         
-            <Field.Root id="email" required>
+            <Field.Root required>
                 <Field.Label>Email Address</Field.Label>
                 <Input 
                 placeholder='Enter your email' 
@@ -53,7 +153,7 @@ const submitHandler=(e)=>{
                 />
             </Field.Root>
       
-            <Field.Root id="password" required>
+            <Field.Root required>
                 <Field.Label>Password</Field.Label>
                 <PasswordInput
                 name="password"
@@ -78,15 +178,29 @@ const submitHandler=(e)=>{
                 />
             </Field.Root>
             <Field.Root>
-              <FileUpload.Root id="avatar">
+              <FileUpload.Root id="avatar" onChange={(e)=>postDetails(e.target.files[0])}>
       <FileUpload.HiddenInput />
       <FileUpload.Trigger>
-        <Field.Label>Upload your profile pic</Field.Label>
-        
-        <Button variant="outline" size="sm" color={"black"} marginTop={"12px"}>
-          <HiUpload /> Upload avatar
-        </Button>
-      </FileUpload.Trigger>
+  <Field.Label>Upload your profile pic</Field.Label>
+
+  <Box
+    as="span"
+    display="inline-flex"
+    alignItems="center"
+    px="4"
+    py="2"
+    borderWidth="1px"
+    borderRadius="md"
+    bg="black"
+    color="white"
+    mt="3"
+    cursor="pointer"
+    _hover={{ bg: "gray.700" }}
+  >
+    <HiUpload style={{ marginRight: "8px" }} />
+    Upload avatar
+  </Box>
+</FileUpload.Trigger>
       <FileUpload.List />
     </FileUpload.Root>
 </Field.Root>
@@ -98,6 +212,7 @@ const submitHandler=(e)=>{
     width="100%"
     style={{marginTop:15}}
     onClick={submitHandler}
+    loading={loading} loadingText="Registering...."
     >
       Signup
     </Button>
