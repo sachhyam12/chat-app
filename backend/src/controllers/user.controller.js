@@ -47,12 +47,12 @@ return res.status(201).json(
 })
 
 const loginUser= asyncHandler(async(req,res)=>{
-    const {email,username,password} =req.body
-    if(!(email||username)){
+    const {email,password} =req.body
+    if(!(email||password)){
         throw new ApiError(400,"username or email is required")
     }
     const user= await User.findOne({
-        $or:[{username},{email}]
+        email
     })
     if(!user){
         throw new ApiError(404,"User doesn't exist")
@@ -83,7 +83,19 @@ const loginUser= asyncHandler(async(req,res)=>{
     )
 })
 
+const allUsers =asyncHandler(async(req,res)=>{
+  const keyword = req.query.search ? {
+    $or: [
+        {name:{ $regex: req.query.search, $options:"i"}},
+        {email:{ $regex:req.query.search,$options:"i"}},
+    ]
+  }:{};
+
+  const users=await User.find(keyword).find ({_id:{$ne:req.user._id}})
+  res.send(users);
+});
 export {
     registerUser,
-    loginUser
+    loginUser,
+    allUsers
 }

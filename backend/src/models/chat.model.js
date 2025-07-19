@@ -7,7 +7,7 @@ const chatSchema= new Schema({
     },
     isGroupChat:{
         type:Boolean,
-        required:true
+        default:false
     },
     users:[
         {

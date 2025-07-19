@@ -1,16 +1,65 @@
 import React,{useState}from 'react'
-import { Fieldset, VStack,Stack, Input,Field,Button,FileUpload} from '@chakra-ui/react'
-import { HiUpload } from "react-icons/hi";
-
+import { Fieldset, VStack,Stack, Input,Field,Button} from '@chakra-ui/react'
+import { toaster } from '../ui/toaster';
 import { PasswordInput } from '../src/components/ui/password-input';
-
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Login = () => {
-    const [email,setEmail]= useState();
-    const [password,setPassword]= useState();
+    const [email,setEmail]= useState("");
+    const [password,setPassword]= useState("");
+    const [loading,setLoading] = useState(false)
+    const navigate=useNavigate()
 
-const submitHandler=(e)=>{
+const submitHandler=async (e)=>{
+setLoading(true);
+if(!email || !password){
+  toaster.create(
+    {
+      title:"Please fill all the fields",
+      type:"error",
+      duration:5000,
+      closable:true,
+ 
+    }
+  );
+  setLoading(false);
+  return;
+}
 
+
+try {
+  const config ={
+    headers:{
+      "Content-type":"application/json"
+    },
+  };
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const payload ={
+    email,password
+  };
+  const {data} = await axios.post(`${BASE_URL}/api/v1/user/login`,payload,config);
+  console.log(data);
+  toaster.create({
+    title:"Login",
+    type:"success",
+    duration:5000,
+    closable: true,
+  });
+  localStorage.setItem('userInfo',JSON.stringify(data));
+  setLoading(false);
+  navigate("/chat");
+} catch (error) {
+    toaster.create({
+      title:"Error!!!",
+      description: error.response.data.message,
+      type:"error",
+      duration:5000,
+      closable:true,
+      placement:"bottom"
+    });
+    setLoading(false);
+}
 }
   return (
     <VStack spacing='5px' color="black">
@@ -72,7 +121,6 @@ const submitHandler=(e)=>{
         Try as a guest User
         </Button>
         </VStack>
-  )
+)
 }
-
 export default Login

@@ -1,6 +1,7 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors"
+
 const app=express();
 
 app.use(express.json(
@@ -17,6 +18,7 @@ app.use(cookieParser())
 
 //Route Configuration
 import userRouter from "./routes/user.routes.js";
+import chatRouter from "./routes/chat.router.js"
 app.use("/api/v1/user",userRouter);
-
+app.use("/api/v1/chat",chatRouter);
 export default app;
