@@ -2,7 +2,6 @@ import asyncHandler from "express-async-handler"
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { uploadOnCloudinary } from "../utils/fileupload.js";
 
 const generateAccessAndRefreshTokens=async(userId)=>{
     try {
@@ -18,9 +17,10 @@ const generateAccessAndRefreshTokens=async(userId)=>{
 }
 
 const registerUser=asyncHandler(async (req,res)=>{
-const {username, email,password}=req.body
+    
+const {name, email,password,avatar}=req.body
 
-if(!username || !email || !password){
+if(!name || !email || !password){
     throw new ApiError(400,"Please fill the required fields")
 }
 
@@ -28,14 +28,12 @@ const userExists= await User.findOne({email})
 if(userExists){
     throw new ApiError(400,"User Already Exists")
 }
-const avatarLocalPath=req.files?.avatar?.[0]?.path;
-const avatar = await uploadOnCloudinary(avatarLocalPath);
 
 const user=await User.create({
-    username,
+    name,
     email,
     password:password.trim(),
-    avatar:avatar.url,
+    avatar:avatar,
 });
 const createdUser = await User.findById(user._id).select("-password -refreshToken")
 if(!createdUser){

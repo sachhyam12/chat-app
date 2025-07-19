@@ -5,13 +5,14 @@ import { PasswordInput } from '../src/components/ui/password-input';
 import { Toaster, toaster } from "../src/components/ui/toaster"
 import axios from 'axios';
 import {useNavigate} from "react-router-dom"
+
 const Signup = () => {
 
-const [name,setName]= useState();
-const [email,setEmail]= useState();
-const [password,setPassword]= useState();
-const [confirmpassword,setConfirmpassword]= useState();
-const [avatar,setAvatar]= useState();
+const [name,setName]= useState("");
+const [email,setEmail]= useState("");
+const [password,setPassword]= useState("");
+const [confirmpassword,setConfirmpassword]= useState("");
+const [avatar,setAvatar]= useState("");
 const [loading,setLoading]=useState(false)
 const navigate = useNavigate();
 const postDetails=(avatar)=>{
@@ -38,8 +39,7 @@ if(avatar.type==="image/jpeg" || avatar.type === "image/png"){
     method:'post',body:data,
   })
   .then((res)=>res.json())
-  .then(data=>{
-    console.log(data)
+  .then(data=>{ 
     setAvatar(data.url.toString());
     setLoading(false)
   })
@@ -86,6 +86,7 @@ if( password !== confirmpassword){
     closable: true,
     placement:"bottom"
   });
+  setLoading(false)
   return;
 }
 try {
@@ -94,7 +95,16 @@ try {
       "Content-type":"application/json"
     },
   };
-  const {data} = await axios.post("/api/user",{name,email,password,avatar},config);
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const payload ={
+    name:name || "",
+    email:email||"",
+    password:password || ""
+  };
+  if(avatar) payload.avatar=avatar;
+  
+  const {data} = await axios.post(`${BASE_URL}/api/v1/user`,payload,config);
+  console.log(data);
   toaster.create({
     title:"Registration Successful",
     type:"success",
@@ -168,7 +178,7 @@ try {
             <Field.Root id="confirmpassword" required>
                 <Field.Label>Confirm Password</Field.Label>
                 <PasswordInput
-                name="password"
+                name="confirmpassword"
                 value={confirmpassword}
                 placeholder="Enter password again"
                 onChange={((e)=>{
@@ -208,11 +218,13 @@ try {
         </Fieldset.Content>
     </Fieldset.Root>
     <Button
+    type='submit'
     colorPalette="blue"
     width="100%"
     style={{marginTop:15}}
     onClick={submitHandler}
-    loading={loading} loadingText="Registering...."
+    loading={loading} 
+    loadingText="Registering...."
     >
       Signup
     </Button>
