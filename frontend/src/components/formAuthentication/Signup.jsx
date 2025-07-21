@@ -2,7 +2,7 @@ import { Fieldset, VStack,Stack, Input,Field,Button,FileUpload,Box} from '@chakr
 import { HiUpload } from "react-icons/hi";
 import React,{useState} from 'react'
 import { PasswordInput } from '../src/components/ui/password-input';
-import { Toaster, toaster } from "../src/components/ui/toaster"
+import { toaster } from '../src/components/ui/toaster';
 import axios from 'axios';
 import {useNavigate} from "react-router-dom"
 
@@ -15,6 +15,8 @@ const [confirmpassword,setConfirmpassword]= useState("");
 const [avatar,setAvatar]= useState("");
 const [loading,setLoading]=useState(false)
 const navigate = useNavigate();
+
+
 const postDetails=(avatar)=>{
 setLoading(true);
 if(avatar==undefined){
@@ -102,7 +104,7 @@ try {
     password:password || ""
   };
   if(avatar) payload.avatar=avatar;
-  
+
   const {data} = await axios.post(`${BASE_URL}/api/v1/user`,payload,config);
   console.log(data);
   toaster.create({

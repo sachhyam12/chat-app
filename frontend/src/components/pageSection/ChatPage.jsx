@@ -9,7 +9,7 @@ const {user} =chatState();
   return (
     <div style = {{width: "100%"}}>
     {user && <SideDrawer />}
-    <Box
+    {/* <Box
     display="flex"
     justifyContent={"space-between"}
     w={"100%"}
@@ -18,7 +18,7 @@ const {user} =chatState();
     >
       {user && <MyChats />}
       {user && <ChatBox />}
-    </Box>
+    </Box> */}
     </div>
   )
 }

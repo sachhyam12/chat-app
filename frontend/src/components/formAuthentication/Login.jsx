@@ -1,26 +1,24 @@
 import React,{useState}from 'react'
 import { Fieldset, VStack,Stack, Input,Field,Button} from '@chakra-ui/react'
-import { toaster } from '../ui/toaster';
 import { PasswordInput } from '../src/components/ui/password-input';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
+import { toaster } from '../ui/toaster.jsx';
 const Login = () => {
     const [email,setEmail]= useState("");
     const [password,setPassword]= useState("");
     const [loading,setLoading] = useState(false)
     const navigate=useNavigate()
-
+ 
 const submitHandler=async (e)=>{
 setLoading(true);
 if(!email || !password){
-  toaster.create(
+      toaster.create(
     {
       title:"Please fill all the fields",
-      type:"error",
+      status:"error",
       duration:5000,
-      closable:true,
- 
+      isClosable:true,     
     }
   );
   setLoading(false);
@@ -39,24 +37,23 @@ try {
     email,password
   };
   const {data} = await axios.post(`${BASE_URL}/api/v1/user/login`,payload,config);
-  console.log(data);
   toaster.create({
-    title:"Login",
+    title:"Login successful",
     type:"success",
     duration:5000,
     closable: true,
+    
   });
   localStorage.setItem('userInfo',JSON.stringify(data));
   setLoading(false);
   navigate("/chat");
 } catch (error) {
-    toaster.create({
+      toaster.create({
       title:"Error!!!",
       description: error.response.data.message,
-      type:"error",
+      status:"error",
       duration:5000,
-      closable:true,
-      placement:"bottom"
+      isClosable:true,
     });
     setLoading(false);
 }

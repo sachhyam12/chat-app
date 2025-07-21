@@ -1,19 +1,94 @@
-import { Box, Button,Text,Menu,Portal,Icon,Avatar} from '@chakra-ui/react';
+import { Box, Button,Text,Menu,Portal,Icon,Avatar, InputElement, Input, Spinner} from '@chakra-ui/react';
 import { Tooltip } from '../src/components/ui/tooltip';
 import React, { useState } from 'react'
 import { FaSearch,FaBell,FaChevronDown} from "react-icons/fa";
 import { chatState } from '../../Context/chatProvider.jsx';
 import ProfileModal from './ProfileModal';
+import { useNavigate } from 'react-router-dom';
+import { Drawer } from "@chakra-ui/react"
+import { toaster } from '../ui/toaster';
+import ChatLoading from './ChatLoading.jsx';
+import axios from 'axios';
+import UserListItem from '../UserInfo/UserListItem.jsx';
 
 const SideDrawer = () => {
 const [search,setSearch]=useState("");
 const [searchResult,setSearchResult] = useState([]);
 const [loading,setLoading]= useState(false);
 const [loadingChat,setLoadingChat]=useState(false);
-const {user}=chatState()
+const [open,setOpen]= useState(false);
+const {user,setSelectedChat,chats,setChats}=chatState()
 
+const navigate= useNavigate()
 
-  return (
+const logoutHandler =()=>{
+    localStorage.removeItem("userInfo")
+    navigate("/")
+}
+
+const handleSearch =async ()=>{
+    if(!search) {
+        toaster.create({
+        title:"Nothing entered to search",
+        type:"warning",
+        duration:5000,
+        closable:true,
+    })
+    return;
+    }
+    try {
+        setLoading(true);
+        const config={
+            headers:{
+                authorization:`Bearer ${user.data.accessToken}`,
+            },
+            withCredentials:true
+        }
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        
+        const {data} = await axios.get(`${BASE_URL}/api/v1/user?search=${search?.trim()}`,config)
+        setLoading(false);
+        setSearchResult(data);
+    } catch (error) {
+        toaster.create({
+            title:"Error Encountered in api call",
+            description:"Failed to load the search results",
+            type:"error",
+            closable:true,
+})
+    }
+}
+
+const accessChat=async (userId)=>{
+try {
+    setLoadingChat(true);
+    
+    const config={
+            headers:{
+                "Content-type":"application/json",
+                authorization:`Bearer ${user.data.accessToken}`,
+            },
+            withCredentials:true
+        };
+        
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+        const {data} = await axios.get(`${BASE_URL}/api/v1/chat`,config)
+        if(!chats.find((c)=>c._id===data._id)) setChats([data,...chats])
+        setSelectedChat(data);
+        setLoadingChat(false);
+        setOpen(false)
+} catch (error) {
+    toaster.create({
+        title:"Error fetching the chat",
+        description:error.message,
+        type:"error",
+        duration:5000,
+        closable:true,
+    });
+
+}
+}
+return (
     <>
     <Box 
     display={"flex"}
@@ -25,7 +100,9 @@ const {user}=chatState()
     borderWidth={"2 px"}
     >
         <Tooltip content="Search users" showArrow >
-        <Button variant="ghost" color={"black"} _hover={{color:"white", bgColor:"gray.500"}}>
+        <Button variant="ghost" color={"black"} _hover={{color:"white", bgColor:"gray.500"}}
+        onClick={(e)=>{setOpen(true)}}
+        >
          <FaSearch />
          <Text 
          display={{base:"none",md:"flex"}}
@@ -57,7 +134,7 @@ const {user}=chatState()
       <Menu.Trigger asChild>
         <Button size="sm" p={"1"} color={"black"}>
             <Avatar.Root size="sm">
-        <Avatar.Image  size="sm" cursor="pointer" src={user?.avatar}/>
+        <Avatar.Image  size="sm" cursor="pointer" src={user?.data.user.avatar}/>
         <Avatar.Fallback/>
       </Avatar.Root>
           <Icon>
@@ -72,13 +149,59 @@ const {user}=chatState()
             <Button value="profile" color={"black"} _hover={{bgColor:"grey"}}>My Profile</Button>
             </ProfileModal>
             <Menu.Separator />
-            <Button value="logout" color={"black"} _hover={{bgColor:"grey"}}>Logout</Button>
+            <Button value="logout" color={"black"} _hover={{bgColor:"grey"}} onClick={logoutHandler}>Logout</Button>
           </Menu.Content>
         </Menu.Positioner>
       </Portal>
     </Menu.Root>
         </div>
     </Box>
+
+<Drawer.Root placement={"start"} open={open} onOpenChange={(e)=>setOpen(e.open)}>
+  <Drawer.Backdrop />
+  <Drawer.Trigger />
+  <Drawer.Positioner>
+    <Drawer.Content bgColor={"aliceblue"}>
+      <Drawer.CloseTrigger />
+      <Drawer.Header>
+        <Drawer.Title borderBottomWidth={"1px"} fontFamily={"Work Sans"} color="teal">Search Users</Drawer.Title>
+      </Drawer.Header>
+      <Drawer.Body>
+        <Box 
+        display={"flex"} 
+        pb={2}>
+            <Input
+            color={"black"}
+            placeholder={"Search by name or email"} 
+            mr={2}
+            value={search}
+            onChange ={(e)=>setSearch(e.target.value)}
+            />
+            <Button onClick={handleSearch} bgColor={"gray"}>
+                Search
+            </Button>
+        </Box>
+        {
+        loading?(
+            <ChatLoading />
+        ):(
+          searchResult?.map(
+            (user)=>(
+                <UserListItem
+                key={user._id}
+                user={user}
+                handleFunction={()=>accessChat(user._id)}
+                />
+            )
+          )
+        )}
+        {loadingChat && <Spinner ml="auto" display="flex" />}
+      </Drawer.Body>
+      <Drawer.Footer />
+    </Drawer.Content>
+  </Drawer.Positioner>
+</Drawer.Root>
+
     </>
   )
 }
