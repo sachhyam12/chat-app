@@ -1,8 +1,8 @@
 import {Button, Dialog,IconButton,Image,Portal,Text,useDisclosure} from '@chakra-ui/react'
 import { FaRegEye } from "react-icons/fa";
 import {useState} from "react"
-const ProfileModal=({user,children})=>{
-  
+const UpdateGroupChatModal=({fetchAgain,setFetchAgain,children})=>{
+     const [open,setOpen] = useState(false)
     return (
       <>
 <Dialog.Root>
@@ -24,21 +24,11 @@ const ProfileModal=({user,children})=>{
   <Dialog.Positioner>
     <Dialog.Content color={"black"} bgColor={"azure"}>
         <Dialog.Header display={"flex"} justifyContent={"center"}>
-            <Dialog.Title fontSize={"30px"} fontFamily={"Work sans"}>{user.name}</Dialog.Title>
+            <Dialog.Title fontSize={"30px"} fontFamily={"Work sans"}>dialog title</Dialog.Title>
         </Dialog.Header>
       <Dialog.CloseTrigger />
       <Dialog.Body display={"flex"} flexDir={"column"} alignItems={"center"} justifyContent={"space-between"}>
-        <Image 
-        borderRadius={"full"}
-        boxSize={"150px"}
-        src={user.avatar}
-        alt={user.name}
-        />
-        <Text 
-        fontSize={{base:"30px", md:"32px"}}
-        > 
-        Email:{user.email}
-        </Text>
+        Dialog body
       </Dialog.Body>
       <Dialog.Footer>
         <Dialog.ActionTrigger asChild>
@@ -53,4 +43,4 @@ const ProfileModal=({user,children})=>{
 )
 }
 
-export default ProfileModal;
+export default UpdateGroupChatModal;

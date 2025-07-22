@@ -62,17 +62,15 @@ const handleSearch =async ()=>{
 const accessChat=async (userId)=>{
 try {
     setLoadingChat(true);
-    
     const config={
             headers:{
-                "Content-type":"application/json",
-                authorization:`Bearer ${user.data.accessToken}`,
+              authorization:`Bearer ${user.data.accessToken}`,
+              "Content-type":"application/json"
             },
             withCredentials:true
         };
-        
         const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-        const {data} = await axios.get(`${BASE_URL}/api/v1/chat`,config)
+        const {data} = await axios.post(`${BASE_URL}/api/v1/chat`,{userId},config)
         if(!chats.find((c)=>c._id===data._id)) setChats([data,...chats])
         setSelectedChat(data);
         setLoadingChat(false);
@@ -145,7 +143,7 @@ return (
       <Portal>
         <Menu.Positioner>
           <Menu.Content bgColor={"white"} color={"black"}>
-            <ProfileModal user={user}>
+            <ProfileModal user={user.data.user}>
             <Button value="profile" color={"black"} _hover={{bgColor:"grey"}}>My Profile</Button>
             </ProfileModal>
             <Menu.Separator />
