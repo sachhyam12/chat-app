@@ -9,13 +9,17 @@ import UpdateGroupChatModal from "./updateGroupChatModal.jsx";
 import { toaster } from "../ui/toaster.jsx";
 import ScrollableChat from "./ScrollableChat.jsx";
 import axios from "axios";
+import { io } from "socket.io-client";
+
+const ENDPOINT = "http://localhost:3000";
+var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const { user, selectedChat, setSelectedChat } = chatState();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
-  //   const [socketConnected, setSocketConnected] = useState(false);
+  const [socketConnected, setSocketConnected] = useState(false);
   //   const [typing, setTyping] = useState(false);
   //   const [istyping, setIsTyping] = useState(false);
   const fetchMessages = async () => {
@@ -36,6 +40,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
       setMessages(data);
       setLoading(false);
+      socket.emit("join chat", selectedChat._id);
     } catch (error) {
       toaster.create({
         title: "Error fetching messages",
@@ -46,6 +51,45 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       });
     }
   };
+
+  useEffect(() => {
+    socket = io(ENDPOINT, {
+      transports: ["websocket"], // force using websocket
+    });
+
+    socket.on("connect", () => {
+      console.log("✅ Connected to Socket.IO server");
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("❌ Connection error:", err.message);
+    });
+    socket.emit("setup", user.data.user);
+    socket.on("connection", () => {
+      setSocketConnected(true);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchMessages();
+    selectedChatCompare = selectedChat;
+  }, [selectedChat]);
+
+  useEffect(() => {
+    socket.on("message received", (newMessageReceived) => {
+      if (
+        !selectedChatCompare ||
+        selectedChatCompare._id !== newMessageReceived.chat._id
+      ) {
+        //notifications
+      } else {
+        setMessages([...messages, newMessageReceived]);
+      }
+    });
+  });
 
   const sendMessage = async (e) => {
     if (e.key === "Enter" && newMessage) {
@@ -66,7 +110,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
           config
         );
-
+        socket.emit("newMessage", data);
         setMessages([...messages, data]);
       } catch (error) {
         toaster.create({
@@ -79,10 +123,6 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       }
     }
   };
-
-  useEffect(() => {
-    fetchMessages();
-  }, [selectedChat]);
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
@@ -109,7 +149,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             </IconButton>
             {!selectedChat.isGroupChat ? (
               <>
-                {getSender(user, selectedChat.users)}
+                {getSender(user.data.user, selectedChat.users)}
                 <ProfileModal user={getSenderInfo(user, selectedChat.users)}>
                   <IconButton bgColor={"#95A8E0"}>
                     <FaRegEye />

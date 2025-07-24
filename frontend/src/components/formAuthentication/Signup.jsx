@@ -126,7 +126,7 @@ const Signup = () => {
     } catch (error) {
       toaster.create({
         title: "Error!!!",
-        description: error.response.data.message,
+        description: error.message || "Something went in registration",
         type: "error",
         duration: 5000,
         closable: true,

@@ -55,11 +55,12 @@ const SideDrawer = () => {
         withCredentials: true,
       };
       const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+      console.log("Before axios call");
       const { data } = await axios.get(
         `${BASE_URL}/api/v1/user?search=${search?.trim()}`,
         config
       );
+
       setLoading(false);
       setSearchResult(data);
     } catch (error) {
@@ -152,7 +153,11 @@ const SideDrawer = () => {
             <Menu.Trigger asChild>
               <Button size="sm" p={"1"} color={"black"}>
                 <Avatar.Root size="sm">
-                  <Avatar.Image size="sm" cursor="pointer" src={user?.avatar} />
+                  <Avatar.Image
+                    size="sm"
+                    cursor="pointer"
+                    src={user?.data.user.avatar}
+                  />
                   <Avatar.Fallback />
                 </Avatar.Root>
                 <Icon>
@@ -163,7 +168,7 @@ const SideDrawer = () => {
             <Portal>
               <Menu.Positioner>
                 <Menu.Content bgColor={"white"} color={"black"}>
-                  <ProfileModal user={user}>
+                  <ProfileModal user={user.data.user}>
                     <Button
                       value="profile"
                       color={"black"}

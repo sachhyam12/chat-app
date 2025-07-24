@@ -28,7 +28,7 @@ const ProfileModal = ({ user, children }) => {
             <Dialog.Content color={"black"} bgColor={"azure"}>
               <Dialog.Header display={"flex"} justifyContent={"center"}>
                 <Dialog.Title fontSize={"30px"} fontFamily={"Work sans"}>
-                  {user.data.name}
+                  {user.name}
                 </Dialog.Title>
               </Dialog.Header>
               <Dialog.CloseTrigger />
@@ -41,11 +41,11 @@ const ProfileModal = ({ user, children }) => {
                 <Image
                   borderRadius={"full"}
                   boxSize={"150px"}
-                  src={user.data.avatar}
-                  alt={user.data.name}
+                  src={user.avatar}
+                  alt={user.name}
                 />
                 <Text fontSize={{ base: "30px", md: "32px" }}>
-                  Email:{user.data.email}
+                  Email:{user.email}
                 </Text>
               </Dialog.Body>
               <Dialog.Footer>
