@@ -8,6 +8,8 @@ import {
   Avatar,
   Input,
   Spinner,
+  IconButton,
+  Badge,
 } from "@chakra-ui/react";
 import { Tooltip } from "../src/components/ui/tooltip";
 import React, { useState } from "react";
@@ -20,6 +22,7 @@ import { toaster } from "../ui/toaster";
 import ChatLoading from "./ChatLoading.jsx";
 import axios from "axios";
 import UserListItem from "../UserInfo/UserListItem.jsx";
+import { getSender } from "@/config/chatLogic";
 
 const SideDrawer = () => {
   const [search, setSearch] = useState("");
@@ -27,8 +30,15 @@ const SideDrawer = () => {
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
   const [open, setOpen] = useState(false);
-  const { user, setSelectedChat, chats, setChats } = chatState();
-
+  const {
+    user,
+    setSelectedChat,
+    chats,
+    setChats,
+    notification,
+    setNotification,
+  } = chatState();
+  const count = notification.length;
   const navigate = useNavigate();
 
   const logoutHandler = () => {
@@ -55,7 +65,7 @@ const SideDrawer = () => {
         withCredentials: true,
       };
       const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-      console.log("Before axios call");
+
       const { data } = await axios.get(
         `${BASE_URL}/api/v1/user?search=${search?.trim()}`,
         config
@@ -135,16 +145,49 @@ const SideDrawer = () => {
         <div>
           <Menu.Root>
             <Menu.Trigger asChild>
-              <Button size="sm" p={"1"}>
-                <Icon>
-                  <FaBell />
-                </Icon>
-              </Button>
+              <IconButton size="sm" p={"1"}>
+                {count > 0 && (
+                  <Badge
+                    position="absolute"
+                    top="0"
+                    right="0"
+                    transform="translate(25%, -25%)"
+                    borderRadius="full"
+                    bg="red.500"
+                    color="white"
+                    fontSize="0.7em"
+                    px={2}
+                  >
+                    {count > 99 ? "99+" : count}
+                  </Badge>
+                )}
+                <FaBell />
+              </IconButton>
             </Menu.Trigger>
             <Portal>
               <Menu.Positioner>
                 <Menu.Content>
-                  {/* <Menu.Item value="new-txt">Notifications to be added later</Menu.Item> */}
+                  <Menu.Item value="notification" pl={3}>
+                    {!notification.length && "No New Messages"}
+                    {notification.map((msg) => (
+                      <Menu.Item
+                        key={msg._id}
+                        onClick={() => {
+                          setSelectedChat(msg.chat);
+                          setNotification(
+                            notification.filter((n) => n !== msg)
+                          );
+                        }}
+                      >
+                        {msg.chat.isGroupChat
+                          ? `New message in ${notification.chat.chatName}`
+                          : `New Message from ${getSender(
+                              user,
+                              msg.chat.users
+                            )}`}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Item>
                 </Menu.Content>
               </Menu.Positioner>
             </Portal>

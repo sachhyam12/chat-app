@@ -113,7 +113,7 @@ const Signup = () => {
         payload,
         config
       );
-      console.log(data);
+
       toaster.create({
         title: "Registration Successful",
         type: "success",

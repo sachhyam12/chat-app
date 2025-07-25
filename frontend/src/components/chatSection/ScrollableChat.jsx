@@ -1,53 +1,74 @@
-import { Tooltip, Avatar } from "@chakra-ui/react";
+import { Avatar as CAvatar, Tooltip as CTooltip, Box } from "@chakra-ui/react";
 import {
   isLastMessage,
   isSameSender,
   isSameSenderMargin,
 } from "../../config/chatLogic.js";
 import { chatState } from "../../Context/ChatProvider.jsx";
-import React from "react";
-import ScrollableFeed from "react-scrollable-feed";
+import React, { useEffect, useRef } from "react";
 
 const ScrollableChat = ({ messages }) => {
   const { user } = chatState();
-
   const userId = user.data.user._id;
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "auto" }); // or "smooth"
+  }, [messages]);
   return (
-    <ScrollableFeed>
+    <Box
+      display={"flex"}
+      flexDirection={"column"}
+      flex="1"
+      justifyContent={"flex-end"}
+      overflowY="auto"
+      paddingX={3}
+      paddingY={1}
+      maxHeight="100%"
+      className="hide-scrollbar"
+    >
       {messages &&
         messages.map((msg, i) => (
           <div style={{ display: "flex" }} key={msg._id}>
             {(isSameSender(messages, msg, i, userId) ||
               isLastMessage(messages, i, userId)) && (
-              <Tooltip content={msg.sender.name} showArrow>
-                <Avatar.Root size="sm">
-                  <Avatar.Image
-                    mt={"7px"}
-                    mr={1}
-                    size="sm"
-                    cursor="pointer"
+              <CTooltip.Root label={msg.sender.name} hasArrow>
+                <CAvatar.Root
+                  mt="7px"
+                  mr={1}
+                  size="sm"
+                  cursor="pointer"
+                  src={msg.sender.avatar}
+                  name={msg.sender.name}
+                >
+                  <CAvatar.Image
                     src={msg.sender.avatar}
+                    name={msg.sender.name}
                   />
-                  <Avatar.Fallback name={msg.sender.name} />
-                </Avatar.Root>
-              </Tooltip>
+                </CAvatar.Root>
+              </CTooltip.Root>
             )}
-            <span
-              style={{
-                backgroundColor: "teal",
-                color: "black",
-                borderRadius: "20px",
-                padding: "5px 15px",
-                maxWidth: "75%",
-                marginLeft: isSameSenderMargin(messages, msg, i, userId),
-                marginTop: isSameSender(messages, msg, i, userId) ? 3 : 10,
-              }}
-            >
-              {msg.content}
-            </span>
+            <Box display="flex" width="100%">
+              <span
+                style={{
+                  backgroundColor: `${
+                    msg.sender._id === userId ? "#95A8E0" : "teal"
+                  }`,
+                  color: "black",
+                  borderRadius: "20px",
+                  padding: "3px 10px",
+                  maxWidth: "75%",
+                  marginLeft: isSameSenderMargin(messages, msg, i, userId),
+                  marginTop: isSameSender(messages, msg, i, userId) ? 3 : 8,
+                }}
+              >
+                {msg.content}
+              </span>
+            </Box>
           </div>
         ))}
-    </ScrollableFeed>
+      <div ref={bottomRef} />
+    </Box>
   );
 };
 

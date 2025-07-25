@@ -15,13 +15,15 @@ const ENDPOINT = "http://localhost:3000";
 var socket, selectedChatCompare;
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-  const { user, selectedChat, setSelectedChat } = chatState();
+  const { user, selectedChat, setSelectedChat, notification, setNotification } =
+    chatState();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
-  //   const [typing, setTyping] = useState(false);
-  //   const [istyping, setIsTyping] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+
   const fetchMessages = async () => {
     if (!selectedChat) return;
     try {
@@ -57,7 +59,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       transports: ["websocket"], // force using websocket
     });
 
-    socket.on("connect", () => {
+    socket.on("connection", () => {
       console.log("✅ Connected to Socket.IO server");
     });
 
@@ -65,9 +67,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       console.error("❌ Connection error:", err.message);
     });
     socket.emit("setup", user.data.user);
-    socket.on("connection", () => {
-      setSocketConnected(true);
-    });
+    socket.on("connected", () => setSocketConnected(true));
+
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stop typing", () => setIsTyping(false));
     return () => {
       socket.disconnect();
     };
@@ -84,7 +87,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         !selectedChatCompare ||
         selectedChatCompare._id !== newMessageReceived.chat._id
       ) {
-        //notifications
+        if (!notification.includes(newMessageReceived)) {
+          setNotification([newMessageReceived, ...notification]);
+          setFetchAgain(!fetchAgain);
+        }
       } else {
         setMessages([...messages, newMessageReceived]);
       }
@@ -93,6 +99,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   const sendMessage = async (e) => {
     if (e.key === "Enter" && newMessage) {
+      socket.emit("stop typing", selectedChat._id);
       try {
         const config = {
           headers: {
@@ -110,7 +117,8 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
           config
         );
-        socket.emit("newMessage", data);
+
+        socket.emit("new message", data);
         setMessages([...messages, data]);
       } catch (error) {
         toaster.create({
@@ -126,7 +134,25 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
+
+    if (!socketConnected) return;
+    if (!typing) {
+      setTyping(true);
+      socket.emit("typing", selectedChat._id);
+    }
+    let lastTypingTime = new Date().getTime();
+    var timerLength = 2000;
+    setTimeout(() => {
+      var timeNow = new Date().getTime();
+      var timeDiff = timeNow - lastTypingTime;
+      if (timeDiff >= timerLength && typing) {
+        socket.emit("stop typing", selectedChat._id);
+        setTyping(false);
+        setIsTyping(false);
+      }
+    }, timerLength);
   };
+
   return (
     <>
       {selectedChat ? (
@@ -190,11 +216,19 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <Text fontSize={"2xl"}>Loading chats....</Text>
               </>
             ) : (
-              <div>
+              <Box
+                display={"flex"}
+                overflowY={"auto"}
+                flex={1}
+                px={3}
+                py={2}
+                className="hide-scrollbar"
+              >
                 <ScrollableChat messages={messages} />
-              </div>
+              </Box>
             )}
             <Field.Root id="messagebox" onKeyDown={sendMessage}>
+              {isTyping ? <div>Loading...</div> : <></>}
               <Input
                 placeholder="Enter message..."
                 name="messagebox"
