@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import { getSender, getSenderInfo } from "../../config/chatLogic.js";
 import ProfileModal from "./ProfileModal.jsx";
 import { FaRegEye } from "react-icons/fa";
-import UpdateGroupChatModal from "./updateGroupChatModal.jsx";
+import UpdateGroupChatModal from "./UpdateGroupChatModal.jsx";
 import { toaster } from "../ui/toaster.jsx";
 import ScrollableChat from "./ScrollableChat.jsx";
 import axios from "axios";
