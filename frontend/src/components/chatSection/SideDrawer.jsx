@@ -14,11 +14,11 @@ import {
 import { Tooltip } from "../src/components/ui/tooltip";
 import React, { useState } from "react";
 import { FaSearch, FaBell, FaChevronDown } from "react-icons/fa";
-import { chatState } from "../../Context/chatProvider.jsx";
+import { chatState } from "../../Context/ChatProvider.jsx";
 import ProfileModal from "./ProfileModal";
 import { useNavigate } from "react-router-dom";
 import { Drawer } from "@chakra-ui/react";
-import { toaster } from "../ui/toaster";
+import { toaster } from "../ui/toaster.jsx";
 import ChatLoading from "./ChatLoading.jsx";
 import axios from "axios";
 import UserListItem from "../UserInfo/UserListItem.jsx";
