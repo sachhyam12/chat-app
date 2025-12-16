@@ -8,8 +8,8 @@ import {
   LuSquareCheck,
   LuUser,
 } from "react-icons/lu";
-import Login from "../formAuthentication/login";
-import Signup from "../formAuthentication/Signup";
+import Login from "../formAuthentication/login.jsx";
+import Signup from "../formAuthentication/Signup.jsx";
 import { useNavigate } from "react-router-dom";
 
 function HomePage() {
