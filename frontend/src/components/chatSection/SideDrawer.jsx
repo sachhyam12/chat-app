@@ -80,6 +80,7 @@ const SideDrawer = () => {
         type: "error",
         closable: true,
       });
+      console.log(error);
     }
   };
 
@@ -129,7 +130,7 @@ const SideDrawer = () => {
             variant="ghost"
             color={"black"}
             _hover={{ color: "white", bgColor: "gray.500" }}
-            onClick={(e) => {
+            onClick={() => {
               setOpen(true);
             }}
           >
